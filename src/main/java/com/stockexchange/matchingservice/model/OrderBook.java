@@ -9,14 +9,14 @@ public class OrderBook {
     private final PriorityBlockingQueue<Order> sellOrders;
 
     public OrderBook() {
-        this.buyOrders = new PriorityBlockingQueue<>(1,(o1, o2) -> {
+        this.buyOrders = new PriorityBlockingQueue<>(1, (o1, o2) -> {
             int priceComparison = Double.compare(o2.getPrice(), o1.getPrice());
             if (priceComparison == 0) {
                 return o1.getCreatedAt().compareTo(o2.getCreatedAt());
             }
             return priceComparison;
         });
-        this.sellOrders = new PriorityBlockingQueue<>(1,(o1, o2) -> {
+        this.sellOrders = new PriorityBlockingQueue<>(1, (o1, o2) -> {
             int priceComparison = Double.compare(o1.getPrice(), o2.getPrice());
             if (priceComparison == 0) {
                 return o1.getCreatedAt().compareTo(o2.getCreatedAt());
@@ -73,7 +73,23 @@ public class OrderBook {
         return executions;
     }
 
+    public void addNewOrdersToOrderBook(List<Order> orders) {
+        for (Order order : orders) {
+            if (!isOrderInBook(order)) {
+                if (order.getType() == OrderType.BUY) {
+                    buyOrders.add(order);
+                } else if (order.getType() == OrderType.SELL) {
+                    sellOrders.add(order);
+                }
+            }
 
+        }
+    }
+    
+    private boolean isOrderInBook(Order order) {
+        return buyOrders.stream().anyMatch(o -> o.getId().equals(order.getId())) ||
+                sellOrders.stream().anyMatch(o -> o.getId().equals(order.getId()));
+    }
 
     public synchronized List<Order> getBuyOrders() {
         return new ArrayList<>(buyOrders);

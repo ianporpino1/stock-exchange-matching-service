@@ -21,10 +21,11 @@ public class Order {
     
     private UUID userId;
 
-    public Order(String symbol, OrderType type, int quantity, double price) {
+    public Order(String symbol, OrderType type, int quantity, double price, UUID userId) {
         this.symbol = symbol;
         this.type = type;
         this.price = price;
+        this.userId = userId;
         this.executedQuantity = 0;
         this.totalQuantity = quantity;
         this.createdAt = Instant.now();
