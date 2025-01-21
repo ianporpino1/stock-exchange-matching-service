@@ -1,14 +1,16 @@
 package com.stockexchange.matchingservice.service;
 
+import com.stockexchange.matchingservice.controller.dto.MatchResponse;
 import com.stockexchange.matchingservice.controller.dto.OrderResponse;
 import com.stockexchange.matchingservice.model.Execution;
 import com.stockexchange.matchingservice.model.Order;
 import com.stockexchange.matchingservice.model.OrderBook;
 import com.stockexchange.matchingservice.model.OrderStatus;
-import com.stockexchange.matchingservice.repository.OrderRepository;
+import com.stockexchange.matchingservice.repository.OrderBookRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -19,9 +21,8 @@ public class OrderBookService {
     private final ConcurrentHashMap<String, OrderBook> orderBooks;
 
     @Autowired
-    private OrderRepository orderRepository;//orderBookRepository
-//    @Autowired
-//    private ExecutionService executionService;
+    private OrderBookRepository orderBookRepository;
+
 
     public OrderBookService() {
         this.orderBooks = new ConcurrentHashMap<>();
@@ -31,28 +32,22 @@ public class OrderBookService {
         return orderBooks.computeIfAbsent(symbol, k -> new OrderBook());
     }
 
-    public OrderResponse processOrder(Order order) {
+    public MatchResponse processOrder(Order order) {
         OrderBook orderBook = getOrderBook(order.getSymbol());
+
+        orderBookRepository.save(order);
         
-        orderRepository.save(order);
-        
-        List<Order> openOrders = orderRepository.findOpenOrders(
+        List<Order> openOrders = orderBookRepository.findOpenOrders(
                 order.getSymbol(),
                 OrderStatus.ACCEPTED,
                 OrderStatus.PARTIALLY_EXECUTED);
         orderBook.addNewOrdersToOrderBook(openOrders);
         List<Execution> executions = orderBook.processOrder(order);
-        
+
+        List<OrderResponse> orderResponses = new ArrayList<>();
         if(executions.isEmpty()) {
-            //orderService.saveOrder(order);
-            return new OrderResponse(
-                    order.getId(),
-                    order.getStatus(),
-                    order.getExecutedQuantity(),
-                    order.getTotalQuantity(),
-                    order.getCreatedAt(),
-                    order.getUserId()
-            );
+            orderResponses.add(new OrderResponse(order));
+            return new MatchResponse(orderResponses);
         }
         
         //executionService.saveAllExecutions(executions);
@@ -66,21 +61,16 @@ public class OrderBookService {
                 ordersToSave.add(execution.getSellOrder());
             }
         });
-        //orderService.saveAllOrders(ordersToSave);
+        orderBookRepository.saveAll(ordersToSave);
 
-        int executedQuantity = executions.stream()
-                .filter(ex -> ex.getBuyOrder().equals(order) || ex.getSellOrder().equals(order))
-                .mapToInt(Execution::getQuantity)
-                .sum();
-        
-        return new OrderResponse(
-                order.getId(),
-                order.getStatus(),
-                executedQuantity,
-                order.getTotalQuantity(),
-                order.getCreatedAt(),
-                order.getUserId()
-        );
+        ordersToSave.forEach(o -> {
+            int executedQuantity = executions.stream()
+                    .filter(ex -> ex.getBuyOrder().equals(o) || ex.getSellOrder().equals(o))
+                    .mapToInt(Execution::getQuantity)
+                    .sum();
+            orderResponses.add(new OrderResponse(o));
+        });
+        return new MatchResponse(orderResponses);
     }
 
 }

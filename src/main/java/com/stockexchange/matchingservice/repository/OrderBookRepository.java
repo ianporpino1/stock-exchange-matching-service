@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface OrderRepository extends JpaRepository<Order, UUID> {
+public interface OrderBookRepository extends JpaRepository<Order, UUID> {
     @Query("SELECT o FROM Order o WHERE o.symbol = :symbol " +
             "AND o.status IN (:accepted, :partiallyExecuted)")
     List<Order> findOpenOrders(@Param("symbol") String symbol,
