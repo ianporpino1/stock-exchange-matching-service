@@ -2,6 +2,7 @@ package com.stockexchange.matchingservice.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.PriorityBlockingQueue;
 
 public class OrderBook {
@@ -12,20 +13,30 @@ public class OrderBook {
         this.buyOrders = new PriorityBlockingQueue<>(1, (o1, o2) -> {
             int priceComparison = Double.compare(o2.getPrice(), o1.getPrice());
             if (priceComparison == 0) {
-                return o1.getCreatedAt().compareTo(o2.getCreatedAt());
+                var t1 = o1.getCreatedAt();
+                var t2 = o2.getCreatedAt();
+                if (t1 == null && t2 == null) return 0;
+                if (t1 == null) return 1;
+                if (t2 == null) return -1;
+                return t1.compareTo(t2);
             }
             return priceComparison;
         });
         this.sellOrders = new PriorityBlockingQueue<>(1, (o1, o2) -> {
             int priceComparison = Double.compare(o1.getPrice(), o2.getPrice());
             if (priceComparison == 0) {
-                return o1.getCreatedAt().compareTo(o2.getCreatedAt());
+                var t1 = o1.getCreatedAt();
+                var t2 = o2.getCreatedAt();
+                if (t1 == null && t2 == null) return 0;
+                if (t1 == null) return 1;
+                if (t2 == null) return -1;
+                return t1.compareTo(t2);
             }
             return priceComparison;
         });
     }
 
-    public synchronized List<Execution> processOrder(Order order) {
+    public synchronized List<Trade> processOrder(Order order) {
         if (order.getType() == OrderType.BUY) {
             buyOrders.add(order);
         } else if (order.getType() == OrderType.SELL) {
@@ -34,8 +45,8 @@ public class OrderBook {
         return matchOrders();
     }
 
-    private List<Execution> matchOrders() {
-        List<Execution> executions = new ArrayList<>();
+    private List<Trade> matchOrders() {
+        List<Trade> trades = new ArrayList<>();
 
         while (!buyOrders.isEmpty() && !sellOrders.isEmpty()) {
             Order buyOrder = buyOrders.peek();
@@ -48,7 +59,7 @@ public class OrderBook {
                 int quantity = Math.min(buyRemainingQuantity, sellRemainingQuantity);
                 double price = sellOrder.getPrice();
 
-                executions.add(new Execution(buyOrder, sellOrder, quantity, price));
+                trades.add(new Trade(UUID.randomUUID(),buyOrder,sellOrder, quantity, price));
 
                 buyOrder.setExecutedQuantity(buyOrder.getExecutedQuantity() + quantity);
                 sellOrder.setExecutedQuantity(sellOrder.getExecutedQuantity() + quantity);
@@ -70,7 +81,7 @@ public class OrderBook {
             }
         }
 
-        return executions;
+        return trades;
     }
 
     public void addNewOrdersToOrderBook(List<Order> orders) {
@@ -87,8 +98,8 @@ public class OrderBook {
     }
     
     private boolean isOrderInBook(Order order) {
-        return buyOrders.stream().anyMatch(o -> o.getId().equals(order.getId())) ||
-                sellOrders.stream().anyMatch(o -> o.getId().equals(order.getId()));
+        return buyOrders.stream().anyMatch(o -> o.getOrderId().equals(order.getOrderId())) ||
+                sellOrders.stream().anyMatch(o -> o.getOrderId().equals(order.getOrderId()));
     }
 
     public synchronized List<Order> getBuyOrders() {

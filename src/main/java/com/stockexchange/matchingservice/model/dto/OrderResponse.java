@@ -1,4 +1,4 @@
-package com.stockexchange.matchingservice.controller.dto;
+package com.stockexchange.matchingservice.model.dto;
 
 import com.stockexchange.matchingservice.model.Order;
 import com.stockexchange.matchingservice.model.OrderStatus;
@@ -19,7 +19,7 @@ public record OrderResponse(
         UUID userId) {
 
     public OrderResponse(Order order) {
-        this(order.getId(),
+        this(order.getOrderId(),
                 order.getStatus(),
                 order.getType(),
                 order.getSymbol(),
