@@ -5,6 +5,7 @@ import com.stockexchange.matchingservice.model.dto.MatchResponse;
 import com.stockexchange.matchingservice.model.dto.OrderResponse;
 import com.stockexchange.matchingservice.service.MatchingEngine;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
@@ -19,8 +20,12 @@ public class MatchController {
     @PostMapping("/match")
     public ResponseEntity<MatchResponse> match(@RequestBody CreateOrderCommand orderToMatch) {
         System.out.println(orderToMatch);
-        MatchResponse matchResponse = matchingEngine.matchOrder(orderToMatch);
-        return ResponseEntity.ok(matchResponse);
+        try {
+            MatchResponse response = matchingEngine.matchOrder(orderToMatch);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
     }
 
     @GetMapping("/orders/{id}")
