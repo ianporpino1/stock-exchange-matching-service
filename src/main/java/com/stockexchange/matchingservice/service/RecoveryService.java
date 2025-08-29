@@ -31,16 +31,21 @@ public class RecoveryService {
 
         return _ -> {
             System.out.println("INICIANDO RECUPERAÇÃO");
-            List<CreateOrderCommand> orders = orderServiceClient.get()
-                    .uri("/orders/recovery")
-                    .retrieve()
-                    .body(new ParameterizedTypeReference<>() {
-                    });
+            try {
+                List<CreateOrderCommand> orders = orderServiceClient.get()
+                        .uri("/orders/recovery")
+                        .retrieve()
+                        .body(new ParameterizedTypeReference<>() {
+                        });
 
-            if (orders != null) {
-                matchingEngine.replayOrders(orders);
+                if (orders != null) {
+                    matchingEngine.replayOrders(orders);
+                }
+                System.out.println("Recuperação concluída");
+            } catch (Exception e) {
+                System.err.println("ORDER SERVICE NAO DISPONIVEL: " + e.getMessage());
             }
-            System.out.println("Recuperação concluída");
+
         };
     }
 }
