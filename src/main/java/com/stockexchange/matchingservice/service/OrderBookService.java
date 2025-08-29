@@ -34,16 +34,13 @@ public class OrderBookService {
             orderResponses.add(new OrderResponse(order));
             return new MatchResponse(orderResponses, Collections.emptyList());
         }
-        System.out.println(trades.getFirst());
         Set<Order> impactedOrders = new HashSet<>();
         impactedOrders.add(order);
         trades.forEach(trade -> {
             if (trade.getBuyOrder() != null) impactedOrders.add(trade.getBuyOrder());
             if (trade.getSellOrder() != null) impactedOrders.add(trade.getSellOrder());
         });
-
         impactedOrders.forEach(o -> orderResponses.add(new OrderResponse(o)));
-        System.out.println(orderResponses.getFirst());
         List<TradeResponse> tradeResponses = trades.stream()
                 .map(TradeResponse::new)
                 .collect(Collectors.toList());

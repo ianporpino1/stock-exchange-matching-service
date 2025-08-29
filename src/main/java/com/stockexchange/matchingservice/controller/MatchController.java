@@ -19,7 +19,6 @@ public class MatchController {
     
     @PostMapping("/match")
     public ResponseEntity<MatchResponse> match(@RequestBody CreateOrderCommand orderToMatch) {
-        System.out.println(orderToMatch);
         try {
             MatchResponse response = matchingEngine.matchOrder(orderToMatch);
             return ResponseEntity.ok(response);
