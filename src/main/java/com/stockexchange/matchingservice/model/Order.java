@@ -1,5 +1,6 @@
 package com.stockexchange.matchingservice.model;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -8,14 +9,14 @@ public class Order {
     private String symbol;
     private OrderType type;
     private OrderStatus status;
-    private double price;
+    private BigDecimal price;
     private int executedQuantity;
     private int totalQuantity;
     private Instant createdAt;
     
     private UUID userId;
 
-    public Order(UUID orderId,String symbol, OrderType type, int quantity, double price, UUID userId, Instant createdAt) {
+    public Order(UUID orderId,String symbol, OrderType type, int quantity, BigDecimal price, UUID userId, Instant createdAt) {
         this.orderId = orderId;
         this.symbol = symbol;
         this.type = type;
@@ -25,6 +26,9 @@ public class Order {
         this.totalQuantity = quantity;
         this.status = OrderStatus.ACCEPTED;
         this.createdAt = createdAt;
+    }
+    public int getRemainingQuantity() {
+        return totalQuantity - executedQuantity;
     }
 
     public UUID getOrderId() {
@@ -51,11 +55,10 @@ public class Order {
         this.type = type;
     }
 
-    public double getPrice() {
+    public BigDecimal getPrice() {
         return price;
     }
-
-    public void setPrice(double price) {
+    public void setPrice(BigDecimal price) {
         this.price = price;
     }
 

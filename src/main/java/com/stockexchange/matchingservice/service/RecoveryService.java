@@ -31,7 +31,8 @@ public class RecoveryService {
 
         return _ -> {
             System.out.println("INICIANDO RECUPERAÇÃO");
-            try {
+            //TALVEZ MAIS TARDE ADICIONAR RETRY
+//            try {
                 List<CreateOrderCommand> orders = orderServiceClient.get()
                         .uri("/orders/recovery")
                         .retrieve()
@@ -39,12 +40,13 @@ public class RecoveryService {
                         });
 
                 if (orders != null) {
+                    System.out.println("Recuperando " + orders.size() + " ordens");
                     matchingEngine.replayOrders(orders);
                 }
                 System.out.println("Recuperação concluída");
-            } catch (Exception e) {
-                System.err.println("ORDER SERVICE NAO DISPONIVEL: " + e.getMessage());
-            }
+//            } catch (Exception e) {
+//                System.err.println("ORDER SERVICE NAO DISPONIVEL: " + e.getMessage());
+//            }
 
         };
     }

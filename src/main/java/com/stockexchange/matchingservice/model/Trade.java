@@ -18,7 +18,7 @@ public class Trade {
     private Order buyOrder;
     private Order sellOrder;
 
-    public Trade(UUID tradeId, Order buyOrder, Order sellOrder, int quantity, double price) {
+    public Trade(UUID tradeId, Order buyOrder, Order sellOrder, int quantity, BigDecimal price) {
         this.tradeId = tradeId;
         this.buyOrder = buyOrder;
         this.sellOrder = sellOrder;
@@ -28,7 +28,7 @@ public class Trade {
         this.sellerUserId = sellOrder.getUserId();
         this.symbol = buyOrder.getSymbol();
         this.quantity = quantity;
-        this.price = BigDecimal.valueOf(price);
+        this.price = price;
         this.executedAt = Instant.now();
     }
 

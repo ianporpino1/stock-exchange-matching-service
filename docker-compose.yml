@@ -2,29 +2,10 @@ services:
   matching-service:
     build: .
     container_name: matching-service
-    depends_on:
-      - postgres
     ports:
       - "8083:8083"
-    networks:
-      - stock_exchange_network
-
-  postgres:
-    image: postgres:17
-    container_name: matching-db
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    environment:
-      POSTGRES_DB: matching_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 12345
-    ports:
-      - "5436:5432"
     networks:
       - stock_exchange_network
 networks:
   stock_exchange_network:
     external: true
-
-volumes:
-  postgres_data:

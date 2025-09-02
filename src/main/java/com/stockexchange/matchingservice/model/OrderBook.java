@@ -1,6 +1,8 @@
 package com.stockexchange.matchingservice.model;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.PriorityBlockingQueue;
@@ -9,31 +11,23 @@ public class OrderBook {
     private final PriorityBlockingQueue<Order> buyOrders;
     private final PriorityBlockingQueue<Order> sellOrders;
 
+    private static final Comparator<Order> BUY_ORDER_COMPARATOR =
+            Comparator.comparing(Order::getPrice).reversed()
+                    .thenComparing(
+                            Order::getCreatedAt,
+                            Comparator.nullsFirst(Comparator.naturalOrder())
+                    );
+
+    private static final Comparator<Order> SELL_ORDER_COMPARATOR =
+            Comparator.comparing(Order::getPrice)
+                    .thenComparing(
+                            Order::getCreatedAt,
+                            Comparator.nullsFirst(Comparator.naturalOrder())
+                    );
+
     public OrderBook() {
-        this.buyOrders = new PriorityBlockingQueue<>(1, (o1, o2) -> {
-            int priceComparison = Double.compare(o2.getPrice(), o1.getPrice());
-            if (priceComparison == 0) {
-                var t1 = o1.getCreatedAt();
-                var t2 = o2.getCreatedAt();
-                if (t1 == null && t2 == null) return 0;
-                if (t1 == null) return 1;
-                if (t2 == null) return -1;
-                return t1.compareTo(t2);
-            }
-            return priceComparison;
-        });
-        this.sellOrders = new PriorityBlockingQueue<>(1, (o1, o2) -> {
-            int priceComparison = Double.compare(o1.getPrice(), o2.getPrice());
-            if (priceComparison == 0) {
-                var t1 = o1.getCreatedAt();
-                var t2 = o2.getCreatedAt();
-                if (t1 == null && t2 == null) return 0;
-                if (t1 == null) return 1;
-                if (t2 == null) return -1;
-                return t1.compareTo(t2);
-            }
-            return priceComparison;
-        });
+        this.buyOrders = new PriorityBlockingQueue<>(100, BUY_ORDER_COMPARATOR);
+        this.sellOrders = new PriorityBlockingQueue<>(100, SELL_ORDER_COMPARATOR);
     }
 
     public synchronized List<Trade> processOrder(Order order) {
@@ -52,29 +46,24 @@ public class OrderBook {
             Order buyOrder = buyOrders.peek();
             Order sellOrder = sellOrders.peek();
 
-            if (buyOrder.getPrice() >= sellOrder.getPrice()) {
-                int buyRemainingQuantity = buyOrder.getTotalQuantity() - buyOrder.getExecutedQuantity();
-                int sellRemainingQuantity = sellOrder.getTotalQuantity() - sellOrder.getExecutedQuantity();
+            if (buyOrder.getPrice().compareTo(sellOrder.getPrice()) >= 0) {
 
-                int quantity = Math.min(buyRemainingQuantity, sellRemainingQuantity);
-                double price = sellOrder.getPrice();
+                BigDecimal tradePrice = buyOrder.getCreatedAt().isBefore(sellOrder.getCreatedAt())
+                        ? buyOrder.getPrice()
+                        : sellOrder.getPrice();
 
-                trades.add(new Trade(UUID.randomUUID(),buyOrder,sellOrder, quantity, price));
+                int tradeQuantity  = Math.min(buyOrder.getRemainingQuantity(), sellOrder.getRemainingQuantity());
 
-                buyOrder.setExecutedQuantity(buyOrder.getExecutedQuantity() + quantity);
-                sellOrder.setExecutedQuantity(sellOrder.getExecutedQuantity() + quantity);
+                trades.add(new Trade(UUID.randomUUID(),buyOrder,sellOrder, tradeQuantity , tradePrice));
 
-                if (buyOrder.getTotalQuantity() == buyOrder.getExecutedQuantity()) {
-                    buyOrder.setStatus(OrderStatus.TOTALLY_EXECUTED);
+                updateOrder(buyOrder, tradeQuantity);
+                updateOrder(sellOrder, tradeQuantity);
+
+                if (buyOrder.getRemainingQuantity() == 0) {
                     buyOrders.poll();
-                } else {
-                    buyOrder.setStatus(OrderStatus.PARTIALLY_EXECUTED);
                 }
-                if (sellOrder.getTotalQuantity() == sellOrder.getExecutedQuantity()) {
-                    sellOrder.setStatus(OrderStatus.TOTALLY_EXECUTED);
+                if (sellOrder.getRemainingQuantity() == 0) {
                     sellOrders.poll();
-                } else {
-                    sellOrder.setStatus(OrderStatus.PARTIALLY_EXECUTED);
                 }
             } else {
                 break;
@@ -82,6 +71,15 @@ public class OrderBook {
         }
 
         return trades;
+    }
+
+    private void updateOrder(Order order, int executedQuantity) {
+        order.setExecutedQuantity(order.getExecutedQuantity() + executedQuantity);
+        if (order.getRemainingQuantity() == 0) {
+            order.setStatus(OrderStatus.TOTALLY_EXECUTED);
+        } else {
+            order.setStatus(OrderStatus.PARTIALLY_EXECUTED);
+        }
     }
 
     public void addNewOrdersToOrderBook(List<Order> orders) {
