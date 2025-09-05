@@ -32,7 +32,7 @@ public class OrderBookService {
         List<OrderResponse> orderResponses = new ArrayList<>();
         if (trades.isEmpty()) {
             orderResponses.add(new OrderResponse(order));
-            return new MatchResponse(orderResponses, Collections.emptyList());
+            return new MatchResponse(orderResponses);
         }
         Set<Order> impactedOrders = new HashSet<>();
         impactedOrders.add(order);
