@@ -43,7 +43,7 @@ public class OrderBookService {
         impactedOrders.forEach(o -> orderResponses.add(new OrderResponse(o)));
         List<TradeResponse> tradeResponses = trades.stream()
                 .map(TradeResponse::new)
-                .collect(Collectors.toList());
+                .toList();
         return new MatchResponse(orderResponses, tradeResponses);
     }
 
