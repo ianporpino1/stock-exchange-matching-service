@@ -1,4 +1,4 @@
-package com.stockexchange.matchingservice.controller.dto;
+package com.stockexchange.matchingservice.model.dto;
 
 
 import com.stockexchange.matchingservice.model.OrderType;

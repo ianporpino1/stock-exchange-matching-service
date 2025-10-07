@@ -1,0 +1,11 @@
+services:
+  matching-service:
+    build: .
+    container_name: matching-service
+    ports:
+      - "8083:8083"
+    networks:
+      - stock_exchange_network
+networks:
+  stock_exchange_network:
+    external: true
