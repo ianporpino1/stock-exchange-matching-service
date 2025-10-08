@@ -6,6 +6,7 @@ import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.List;
@@ -28,24 +29,27 @@ public class RecoveryService {
     @Bean
     public CommandLineRunner recoverOrders(WebClient orderServiceClient,
                                            MatchingEngine matchingEngine) {
+
         return _ -> {
             System.out.println("INICIANDO RECUPERAÇÃO");
-
-            orderServiceClient.get()
+            //TALVEZ MAIS TARDE ADICIONAR RETRY
+//            try {
+            List<CreateOrderCommand> orders = orderServiceClient.get()
                     .uri("/orders/recovery")
                     .retrieve()
-                    .bodyToFlux(new ParameterizedTypeReference<CreateOrderCommand>() {
-                    })
-                    .doOnNext(order -> {
-                        matchingEngine.replayOrders(List.of(order));
-                    })
-                    .doOnError(error -> {
-                        System.err.println("FALHA DURANTE O STREAM DE RECUPERAÇÃO: " + error.getMessage());
-                    })
-                    .doOnComplete(() -> {
-                        System.out.println("Recuperação concluída.");
-                    })
-                    .subscribe();
+                    .bodyToFlux(new ParameterizedTypeReference<CreateOrderCommand>() {})
+                    .collectList()
+                    .block();
+
+                if (orders != null) {
+                    System.out.println("Recuperando " + orders.size() + " ordens");
+                    matchingEngine.replayOrders(orders);
+                }
+                System.out.println("Recuperação concluída");
+//            } catch (Exception e) {
+//                System.err.println("ORDER SERVICE NAO DISPONIVEL: " + e.getMessage());
+//            }
+
         };
     }
 }
