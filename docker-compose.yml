@@ -4,6 +4,9 @@ services:
     container_name: matching-service
     ports:
       - "8083:8083"
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+      - CONFIG_SERVER_URL=http://config-server:8888
     networks:
       - stock_exchange_network
 networks:
