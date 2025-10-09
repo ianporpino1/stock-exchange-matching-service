@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
+
 import java.util.UUID;
 
 @RestController
@@ -18,14 +20,13 @@ public class MatchController {
     private MatchingEngine matchingEngine;
     
     @PostMapping("/match")
-    public ResponseEntity<MatchResponse> match(@RequestBody CreateOrderCommand orderToMatch) {
-        try {
-            MatchResponse response = matchingEngine.matchOrder(orderToMatch);
-            return ResponseEntity.ok(response);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
-        }
+    public Mono<ResponseEntity<MatchResponse>> match(@RequestBody Mono<CreateOrderCommand> orderToMatchMono) {
+        return orderToMatchMono
+                .flatMap(orderToMatch -> matchingEngine.matchOrder(orderToMatch))
+                .map(ResponseEntity::ok)
+                .switchIfEmpty(Mono.just(ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build()));
     }
+
 
     @GetMapping("/orders/{id}")
     public ResponseEntity<OrderResponse> getOrderById(@PathVariable UUID id) {

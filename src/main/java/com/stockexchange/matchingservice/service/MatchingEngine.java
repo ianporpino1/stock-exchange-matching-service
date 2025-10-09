@@ -5,6 +5,7 @@ import com.stockexchange.matchingservice.model.Order;
 import com.stockexchange.matchingservice.model.dto.OrderResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,7 +23,7 @@ public class MatchingEngine {
 
     private final ConcurrentHashMap<UUID, Order> allOrders = new ConcurrentHashMap<>();
 
-    public MatchResponse matchOrder(CreateOrderCommand command) {
+    public Mono<MatchResponse> matchOrder(CreateOrderCommand command) {
         if (!this.isReady.get()) {
             throw new RuntimeException("Matching Engine está em processo de recuperação.");
         }
@@ -50,7 +51,7 @@ public class MatchingEngine {
         finishReplay();
     }
 
-    private MatchResponse processInternal(CreateOrderCommand command) {
+    private Mono<MatchResponse> processInternal(CreateOrderCommand command) {
         Order order = toOrder(command);
         allOrders.put(order.getOrderId(), order);
         return orderBookService.processOrder(order);
