@@ -1,9 +1,9 @@
-package com.stockexchange.matchingservice.controller.dto;
+package com.stockexchange.matchingservice.model.dto;
 
 import com.stockexchange.matchingservice.model.Order;
 import com.stockexchange.matchingservice.model.OrderStatus;
 import com.stockexchange.matchingservice.model.OrderType;
-
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -12,14 +12,14 @@ public record OrderResponse(
         OrderStatus orderStatus,
         OrderType orderType,
         String symbol,
-        double price,
+        BigDecimal price,
         int executedQuantity,
         int totalQuantity,
         Instant orderDate,
         UUID userId) {
 
     public OrderResponse(Order order) {
-        this(order.getId(),
+        this(order.getOrderId(),
                 order.getStatus(),
                 order.getType(),
                 order.getSymbol(),

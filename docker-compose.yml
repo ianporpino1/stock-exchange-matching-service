@@ -1,0 +1,14 @@
+services:
+  matching-service:
+    build: .
+    container_name: matching-service
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_PROFILES_ACTIVE=reactive-docker
+      - CONFIG_SERVER_URL=http://config-server:8888
+    networks:
+      - stock_exchange_network
+networks:
+  stock_exchange_network:
+    external: true
