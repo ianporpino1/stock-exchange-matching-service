@@ -1,0 +1,60 @@
+
+enum OrderType {
+    BUY
+    SELL
+}
+
+type TradeResponse {
+    tradeId: ID
+    buyOrderId: ID
+    sellOrderId: ID
+    buyerUserId: ID
+    sellerUserId: ID
+    symbol: String
+    quantity: Int
+    price: Float
+    executedAt: String
+}
+
+enum OrderStatus {
+    REJECTED
+    ACCEPTED
+    PARTIALLY_EXECUTED
+    TOTALLY_EXECUTED
+}
+
+type OrderResponse {
+    orderId: ID
+    orderStatus: OrderStatus
+    orderType: OrderType
+    symbol: String
+    price: Float
+    executedQuantity: Int
+    totalQuantity: Int
+    orderDate: String
+    userId: ID
+}
+
+type MatchResponse {
+    orders: [OrderResponse]
+    trades: [TradeResponse]
+}
+
+input CreateOrderCommandInput {
+    commandId: ID
+    orderId: ID
+    userId: ID
+    symbol: String
+    price: Float
+    quantity: Int
+    orderType: OrderType
+    createdAt: String
+}
+
+type Mutation {
+    matchOrder(order: CreateOrderCommandInput!): MatchResponse
+}
+
+type Query {
+    _dummy: String
+}
