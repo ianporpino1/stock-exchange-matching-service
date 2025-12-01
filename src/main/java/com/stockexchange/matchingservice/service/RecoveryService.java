@@ -26,30 +26,30 @@ public class RecoveryService {
                 .build();
     }
 
-    @Bean
-    public CommandLineRunner recoverOrders(WebClient orderServiceClient,
-                                           MatchingEngine matchingEngine) {
-
-        return _ -> {
-            System.out.println("INICIANDO RECUPERAÇÃO");
-            //TALVEZ MAIS TARDE ADICIONAR RETRY
-//            try {
-            List<CreateOrderCommand> orders = orderServiceClient.get()
-                    .uri("/orders/recovery")
-                    .retrieve()
-                    .bodyToFlux(new ParameterizedTypeReference<CreateOrderCommand>() {})
-                    .collectList()
-                    .block();
-
-                if (orders != null) {
-                    System.out.println("Recuperando " + orders.size() + " ordens");
-                    matchingEngine.replayOrders(orders);
-                }
-                System.out.println("Recuperação concluída");
-//            } catch (Exception e) {
-//                System.err.println("ORDER SERVICE NAO DISPONIVEL: " + e.getMessage());
-//            }
-
-        };
-    }
+//    @Bean
+//    public CommandLineRunner recoverOrders(WebClient orderServiceClient,
+//                                           MatchingEngine matchingEngine) {
+//
+//        return _ -> {
+//            System.out.println("INICIANDO RECUPERAÇÃO");
+//            //TALVEZ MAIS TARDE ADICIONAR RETRY
+////            try {
+//            List<CreateOrderCommand> orders = orderServiceClient.get()
+//                    .uri("/orders/recovery")
+//                    .retrieve()
+//                    .bodyToFlux(new ParameterizedTypeReference<CreateOrderCommand>() {})
+//                    .collectList()
+//                    .block();
+//
+//                if (orders != null) {
+//                    System.out.println("Recuperando " + orders.size() + " ordens");
+//                    matchingEngine.replayOrders(orders);
+//                }
+//                System.out.println("Recuperação concluída");
+////            } catch (Exception e) {
+////                System.err.println("ORDER SERVICE NAO DISPONIVEL: " + e.getMessage());
+////            }
+//
+//        };
+//    }
 }

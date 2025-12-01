@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Service
 public class MatchingEngine {
 
-    private final AtomicBoolean isReady = new AtomicBoolean(false);
+    private final AtomicBoolean isReady = new AtomicBoolean(true);
 
     @Autowired
     private OrderBookService orderBookService;

@@ -7,6 +7,10 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=reactive-docker
       - CONFIG_SERVER_URL=http://config-server:8888
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=rabbit
+      - SPRING_RABBITMQ_PASSWORD=rabbit
     networks:
       - stock_exchange_network
 networks:
