@@ -24,8 +24,11 @@ public class MatchHandler {
     }
 
     @Bean
-    public Function<Flux<OrderCreatedEvent>, Flux<Message<?>>> handleMatch() {
-        return flux -> flux.concatMap(event ->
+    public Function<Flux<Message<OrderCreatedEvent>>, Flux<Message<?>>> handleMatch() {
+        return flux -> flux
+                .filter(msg -> "order.created".equals(msg.getHeaders().get("eventType")))
+                .map(Message::getPayload)
+                .concatMap(event ->
                 matchingEngine.matchOrder(CreateOrderCommand.from(event))
                         .flatMapMany(response ->
                                 Flux.merge(
