@@ -24,10 +24,8 @@ public class MatchHandler {
     }
 
     @Bean
-    public Function<Flux<Message<OrderCreatedEvent>>, Flux<Message<?>>> handleMatch() {
+    public Function<Flux<OrderCreatedEvent>, Flux<Message<?>>> handleMatch() {
         return flux -> flux
-                .filter(msg -> "order.created".equals(msg.getHeaders().get("eventType")))
-                .map(Message::getPayload)
                 .concatMap(event ->
                 matchingEngine.matchOrder(CreateOrderCommand.from(event))
                         .flatMapMany(response ->
@@ -46,8 +44,7 @@ public class MatchHandler {
         return Flux.fromIterable(orders)
                 .map(order ->
                         MessageBuilder.withPayload(OrderUpdatedEvent.from(order))
-                                .setHeader("spring.cloud.stream.sendto.destination", "order.events")
-                                .setHeader("eventType", "order.updated")
+                                .setHeader("spring.cloud.stream.sendto.destination", "matching.responses.order-updated")
                                 .build()
                 );
     }
@@ -59,8 +56,7 @@ public class MatchHandler {
         return Flux.fromIterable(trades)
                 .map(trade ->
                         MessageBuilder.withPayload(TradeExecutedEvent.from(trade))
-                                .setHeader("spring.cloud.stream.sendto.destination", "trade.events")
-                                .setHeader("eventType", "trade.executed")
+                                .setHeader("spring.cloud.stream.sendto.destination", "matching.responses.trade-executed")
                                 .build()
                 );
     }
